@@ -52,7 +52,7 @@ def prepare_data(replay):
     # the loss.
     moves[batch[:,:,:,0] == 0] = 0
 
-    return batch, moves.reshape(-1, WIDTH * HEIGHT, 5)
+    return batch, moves
 
 xs = []
 ys = []
