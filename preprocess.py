@@ -8,6 +8,10 @@ from train import REPLAY_FOLDER, WIDTH, HEIGHT
 def prepare_data(replay):
     '''Create training data from a Halite replay.'''
     frames = np.array(replay['frames'])
+
+    # Drop the last frame, as it doesn't have any moves associated with it
+    frames = frames[:-1]
+
     player_id = frames[:,:,:,0]
 
     # Find the winner (the player with most territory at the end)
@@ -18,7 +22,7 @@ def prepare_data(replay):
 
     # Broadcast production array to each time frame
     init_prod = np.array(replay['productions'])[np.newaxis]
-    production = np.repeat(init_prod, replay['num_frames'], axis=0)
+    production = np.repeat(init_prod, replay['num_frames'] - 1, axis=0)
 
     strength = frames[:,:,:,1]
     is_winner = player_id == winner_id
@@ -43,8 +47,12 @@ def prepare_data(replay):
     batch = np.pad(batch, ((0, 0), (pad_x, pad_x + extra_x), (pad_y, pad_y + extra_y), (0, 0)), 'wrap')
     moves = np.pad(moves, ((0, 0), (pad_x, pad_x + extra_x), (pad_y, pad_y + extra_y), (0, 0)), 'wrap')
 
-    # We remove the final frame, as it doesn't have any associated decisions
-    return batch[:-1], moves.reshape(-1, WIDTH * HEIGHT, 5)
+    # Only moves for the winning player have to be predicted.
+    # If all entries are zero, this pixel won't contribute to
+    # the loss.
+    moves[batch[:,:,:,0] == 0] = 0
+
+    return batch, moves.reshape(-1, WIDTH * HEIGHT, 5)
 
 xs = []
 ys = []

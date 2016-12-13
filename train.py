@@ -10,8 +10,8 @@ from keras.layers.advanced_activations import LeakyReLU
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 REPLAY_FOLDER = 'replays'
-WIDTH = 100
-HEIGHT = 100
+WIDTH = 50
+HEIGHT = 50
 
 np.random.seed(0) # for reproducibility
 
@@ -40,8 +40,9 @@ if __name__ == '__main__':
 
     model.fit_generator(
         load_data(),
-        callbacks=[ModelCheckpoint('model.h5', verbose=1, save_best_only=True)],
+        callbacks=[ModelCheckpoint('model.h5', verbose=1, save_best_only=False)],
         samples_per_epoch=20000,
-        nb_epoch=1,
+        nb_epoch=10,
+        nb_worker=5,
     )
 
