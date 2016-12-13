@@ -4,15 +4,16 @@ import sys
 import numpy as np
 
 VISIBLE_DISTANCE = 4
-input_dim=4*(2*VISIBLE_DISTANCE+1)*(2*VISIBLE_DISTANCE+1)
+input_dim=4 * (2 * VISIBLE_DISTANCE + 1) * (2 * VISIBLE_DISTANCE + 1)
 
 myID, gameMap = getInit()
 
+# Make sure not to produce stderr when loading the model
 with open(os.devnull, 'w') as sys.stderr:
     from keras.models import load_model
     model = load_model('model.h5')
 
-model.predict(np.random.randn(1,input_dim)).shape # make sure model is compiled during init
+model.predict(np.random.randn(1, input_dim)).shape # make sure model is compiled during init
 
 def stack_to_input(stack, position):
     return np.take(np.take(stack,
