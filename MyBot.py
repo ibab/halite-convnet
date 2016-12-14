@@ -1,6 +1,7 @@
-from networking import *
 import os
 import sys
+
+import hlt
 import numpy as np
 
 WIDTH = 50
