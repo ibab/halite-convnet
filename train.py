@@ -17,6 +17,7 @@ VALIDATION_SPLIT = 0.3
 
 np.random.seed(0) # for reproducibility
 
+
 def gated_unit(x):
     c = Convolution2D(8, 3, 3, border_mode='same')(x)
     s = Activation('sigmoid')(Convolution2D(8, 1, 1)(c))
@@ -101,6 +102,7 @@ def prepare_data(group):
 
     return batch, moves
 
+
 def load_data(games):
     xs = []
     ys = []
@@ -156,4 +158,3 @@ if __name__ == '__main__':
         samples_per_epoch=50 * BATCH_SIZE,
         nb_epoch=500,
     )
-

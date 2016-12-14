@@ -18,6 +18,7 @@ def get_user_ids():
     user_ids = [user['userID'] for user in users]
     return user_ids
 
+
 def generate_user_games(user_id, tmpdir):
     '''Downloads games from one user.'''
     request = "https://halite.io/api/web/game?userID={}&limit=1000".format(user_id)
@@ -39,6 +40,7 @@ def generate_user_games(user_id, tmpdir):
 
         sleep(np.random.rand() + 1)
 
+
 def prepare_data(replay):
     '''Create training data from a Halite replay.'''
     frames = np.array(replay['frames'])
@@ -52,7 +54,6 @@ def prepare_data(replay):
     moves = np.array(replay['moves'])
     return player_id, strength, production, moves
 
-get_user_ids()
 
 if __name__ == '__main__':
     f = h5py.File('games.h5', 'w')
@@ -69,4 +70,3 @@ if __name__ == '__main__':
         grp.create_dataset('moves', data=moves, **opts)
         f.flush()
         print('Processed {}'.format(game_id))
-
