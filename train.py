@@ -10,15 +10,24 @@ from keras.layers import Convolution2D, Deconvolution2D, Input, Reshape, Flatten
 from keras.layers.advanced_activations import LeakyReLU
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 
+# Total width and height of the wrapped area used
+# as input to the convolutional network.
 WIDTH = 50
 HEIGHT = 50
+# How many frames to take into account in each batch.
 BATCH_SIZE = 256
+# Fraction of data sample used for validation.
 VALIDATION_SPLIT = 0.3
+# How many previous frames to use as input.
+LOOKBACK = 0
 
-np.random.seed(0) # for reproducibility
+# For reproducibility.
+np.random.seed(0)
 
 
 def gated_unit(x):
+    '''A single layer of the convolutional network
+    using a gated activation unit.'''
     c = Convolution2D(8, 3, 3, border_mode='same')(x)
     s = Activation('sigmoid')(Convolution2D(8, 1, 1)(c))
     t = Activation('tanh')(Convolution2D(8, 1, 1)(c))
@@ -30,7 +39,8 @@ def gated_unit(x):
 
 
 def create_model():
-    input_batch = Input(shape=(WIDTH, HEIGHT, 13))
+    '''Returns the complete Keras model.'''
+    input_batch = Input(shape=(WIDTH, HEIGHT, 4 + 3 * LOOKBACK))
     x = Convolution2D(8, 1, 1, activation='relu')(input_batch)
 
     skipped = []
@@ -50,6 +60,10 @@ def create_model():
 
 
 def prepare_data(group):
+    '''Preprocess replay data so that it can be used
+    as input and target of the network.'''
+
+    # Copy data from file and transform
     player = group['player'][:]
     strength = group['strength'][:] / 255
     production = group['production'][:] / 20
@@ -73,11 +87,12 @@ def prepare_data(group):
     batch = np.array([is_winner, is_loser, strength])
     batch = np.transpose(batch, (1, 2, 3, 0))
 
-    back1 = np.pad(batch[:-1], ((1, 0), (0, 0), (0, 0), (0, 0)), mode='edge')
-    back2 = np.pad(batch[:-2], ((2, 0), (0, 0), (0, 0), (0, 0)), mode='edge')
-    back3 = np.pad(batch[:-3], ((3, 0), (0, 0), (0, 0), (0, 0)), mode='edge')
+    lookback = []
+    for i in range(1, LOOKBACK + 1):
+        back = np.pad(batch[:-i], ((i, 0), (0, 0), (0, 0), (0, 0)), mode='edge')
+        lookback.append(back)
 
-    batch = np.concatenate([batch, back1, back2, back3, production], axis=3)
+    batch = np.concatenate([batch] + lookback + [production], axis=3)
 
     # One-hot encode the moves
     moves = np.eye(5)[np.array(moves)]
@@ -104,6 +119,8 @@ def prepare_data(group):
 
 
 def load_data(games):
+    '''Generator that loads batches of BATCH_SIZE
+    frames from the specified games.'''
     xs = []
     ys = []
     size = 0
